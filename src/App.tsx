@@ -32,6 +32,17 @@ function App() {
   const handleDeleteAlarm = (id: string) => {
     setAlarms(alarms.filter(alarm => alarm.id !== id));
   };
+import AlarmComponent from '../components/AlarmComponent';
+
+const HomePage = () => {
+  return (
+    <div>
+      <AlarmComponent />
+    </div>
+  );
+};
+
+export default HomePage;
 
   const updateAlarmTime = (id: string, estimatedTime: string) => {
     setAlarms(alarms.map(alarm => 
