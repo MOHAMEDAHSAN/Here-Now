@@ -58,7 +58,7 @@ function App() {
                   8px 8px 0px #1B5696
                 `,
                 fontFamily: 'system-ui'
-              }}>Here&Now</h1>
+              }}>Heree&Now</h1>
               <p className="text-sm italic font-light mt-1" style={{ fontFamily: 'Playfair Display, serif' }}>
                 Never miss a moment, place, or time
               </p>
