@@ -6,6 +6,14 @@ interface Props {
   onSubmit: (latitude: number, longitude: number, name: string, message: string, category: Alarm['category']) => void;
 }
 
+interface Location {
+  lat: string;
+  lon: string;
+  display_name: string;
+  importance: number;
+  distance?: number;
+}
+
 const CATEGORIES = [
   { value: 'important', label: 'Important', color: 'bg-red-500' },
   { value: 'work', label: 'Work', color: 'bg-blue-500' },
@@ -20,17 +28,20 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
   const [areaName, setAreaName] = useState('');
   const [message, setMessage] = useState('');
   const [category, setCategory] = useState<Alarm['category']>('other');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Location[]>([]);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(Number(latitude), Number(longitude), areaName, message || '(No message)', category);
-    setLatitude('');
-    setLongitude('');
-    setAreaName('');
-    setMessage('');
-    setCategory('other');
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   };
 
   const handleAreaSearch = async (query: string) => {
@@ -38,16 +49,34 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
     
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=10`
       );
-      const data = await response.json();
-      setSearchResults(data.slice(0, 5));
+      const data: Location[] = await response.json();
+      
+      // Sort results by distance if user location is available
+      if (userLocation) {
+        data.forEach(location => {
+          location.distance = calculateDistance(
+            userLocation.lat,
+            userLocation.lon,
+            parseFloat(location.lat),
+            parseFloat(location.lon)
+          );
+        });
+        
+        data.sort((a, b) => {
+          if (!a.distance || !b.distance) return 0;
+          return a.distance - b.distance;
+        });
+      }
+      
+      setSearchResults(data);
     } catch (error) {
       console.error('Error searching locations:', error);
     }
   };
 
-  const handleLocationSelect = (location: any) => {
+  const handleLocationSelect = (location: Location) => {
     setLatitude(location.lat);
     setLongitude(location.lon);
     setAreaName(location.display_name);
@@ -62,6 +91,7 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
           const { latitude, longitude } = position.coords;
           setLatitude(latitude.toString());
           setLongitude(longitude.toString());
+          setUserLocation({ lat: latitude, lon: longitude });
           
           try {
             const response = await fetch(
@@ -84,6 +114,16 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
       alert('Geolocation is not supported by your browser');
       setIsGettingLocation(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(Number(latitude), Number(longitude), areaName, message || '(No message)', category);
+    setLatitude('');
+    setLongitude('');
+    setAreaName('');
+    setMessage('');
+    setCategory('other');
   };
 
   return (
