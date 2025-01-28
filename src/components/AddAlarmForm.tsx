@@ -12,6 +12,15 @@ interface Location {
   display_name: string;
   importance: number;
   distance?: number;
+  address?: {
+    city?: string;
+    state?: string;
+    country?: string;
+    neighbourhood?: string;
+    suburb?: string;
+    town?: string;
+    village?: string;
+  };
 }
 
 const CATEGORIES = [
@@ -44,6 +53,22 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
     return R * c;
   };
 
+  const formatLocationName = (location: Location): string => {
+    const parts = [];
+    const addr = location.address || {};
+    
+    // Start with most specific location
+    if (addr.neighbourhood) parts.push(addr.neighbourhood);
+    if (addr.suburb) parts.push(addr.suburb);
+    if (addr.village) parts.push(addr.village);
+    if (addr.town) parts.push(addr.town);
+    if (addr.city) parts.push(addr.city);
+    if (addr.state) parts.push(addr.state);
+    if (addr.country) parts.push(addr.country);
+    
+    return parts.join(', ') || location.display_name;
+  };
+
   const handleAreaSearch = async (query: string) => {
     if (query.length < 3) return;
     
@@ -64,9 +89,15 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
           );
         });
         
+        // Sort by distance and then by importance
         data.sort((a, b) => {
           if (!a.distance || !b.distance) return 0;
-          return a.distance - b.distance;
+          const distanceDiff = a.distance - b.distance;
+          if (Math.abs(distanceDiff) > 10) { // If distance difference is significant
+            return distanceDiff;
+          }
+          // If distances are similar, sort by importance
+          return b.importance - a.importance;
         });
       }
       
@@ -162,7 +193,16 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
                 onClick={() => handleLocationSelect(result)}
                 className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50"
               >
-                {result.display_name}
+                <div className="flex justify-between items-center">
+                  <span>{formatLocationName(result)}</span>
+                  {result.distance && (
+                    <span className="text-sm text-gray-500">
+                      {result.distance < 1 
+                        ? `${(result.distance * 1000).toFixed(0)}m` 
+                        : `${result.distance.toFixed(1)}km`}
+                    </span>
+                  )}
+                </div>
               </button>
             ))}
           </div>
