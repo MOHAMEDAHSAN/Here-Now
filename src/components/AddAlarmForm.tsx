@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Crosshair } from 'lucide-react';
+import { Crosshair } from 'lucide-react';
 import type { Alarm } from '../App';
 
 interface Props {
