@@ -38,7 +38,7 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
     
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in`
       );
       const data = await response.json();
       setSearchResults(data.slice(0, 5));

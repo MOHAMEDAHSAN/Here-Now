@@ -3,7 +3,8 @@ import { useState } from 'react';
 import Map from './components/Map';
 import AlarmList from './components/AlarmList';
 import AddAlarmForm from './components/AddAlarmForm';
-import logoImage from '/newicon.png';  // Import the logo directly
+import Footer from './components/Footer';
+import logoImage from '/newicon.png';
 
 export interface Alarm {
   id: string;
@@ -82,6 +83,8 @@ function App() {
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 }
