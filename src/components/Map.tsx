@@ -64,7 +64,7 @@ interface WeatherError {
 }
 
 const WEATHER_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
-const WEATHER_API_KEY = 'd785347b2ff94fe593082140252301';
+const WEATHER_API_KEY = '08664519520f4182acd154355250402';
 const RETRY_DELAY = 2000; // 2 seconds
 
 async function fetchWeatherData(lat: number, lon: number, retries = 3): Promise<WeatherInfo> {
