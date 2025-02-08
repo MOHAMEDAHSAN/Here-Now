@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Map from './components/Map';
 import AlarmList from './components/AlarmList';
 import AddAlarmForm from './components/AddAlarmForm';
+import logoImage from '/newicon.png';  // Import the logo directly
 
 export interface Alarm {
   id: string;
@@ -47,7 +48,7 @@ function App() {
         <div className="container mx-auto px-4 py-8 relative">
           <div className="flex items-center space-x-4">
             <div className="flex items-center justify-center w-16 h-16 bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl shadow-lg border border-white border-opacity-20 transform hover:rotate-3 transition-transform duration-300">
-              <img src="newicon.png" alt="Here&Now Logo" />
+              <img src={logoImage} alt="Here&Now Logo" className="w-12 h-12" />
             </div>
             <div>
               <h1 className="text-6xl font-black tracking-tighter" style={{ 
