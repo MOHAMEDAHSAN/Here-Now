@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { MapPinOff, BellRing, Clock } from 'lucide-react';
 import Map from './components/Map';
 import AlarmList from './components/AlarmList';
 import AddAlarmForm from './components/AddAlarmForm';

@@ -1,26 +1,9 @@
 import React, { useState } from 'react';
-import { Crosshair } from 'lucide-react';
+import { Search, Crosshair } from 'lucide-react';
 import type { Alarm } from '../App';
 
 interface Props {
   onSubmit: (latitude: number, longitude: number, name: string, message: string, category: Alarm['category']) => void;
-}
-
-interface Location {
-  lat: string;
-  lon: string;
-  display_name: string;
-  importance: number;
-  distance?: number;
-  address?: {
-    city?: string;
-    state?: string;
-    country?: string;
-    neighbourhood?: string;
-    suburb?: string;
-    town?: string;
-    village?: string;
-  };
 }
 
 const CATEGORIES = [
@@ -37,36 +20,17 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
   const [areaName, setAreaName] = useState('');
   const [message, setMessage] = useState('');
   const [category, setCategory] = useState<Alarm['category']>('other');
-  const [searchResults, setSearchResults] = useState<Location[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
-  const formatLocationName = (location: Location): string => {
-    const parts = [];
-    const addr = location.address || {};
-    
-    // Start with most specific location
-    if (addr.neighbourhood) parts.push(addr.neighbourhood);
-    if (addr.suburb) parts.push(addr.suburb);
-    if (addr.village) parts.push(addr.village);
-    if (addr.town) parts.push(addr.town);
-    if (addr.city) parts.push(addr.city);
-    if (addr.state) parts.push(addr.state);
-    if (addr.country) parts.push(addr.country);
-    
-    return parts.join(', ') || location.display_name;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(Number(latitude), Number(longitude), areaName, message || '(No message)', category);
+    setLatitude('');
+    setLongitude('');
+    setAreaName('');
+    setMessage('');
+    setCategory('other');
   };
 
   const handleAreaSearch = async (query: string) => {
@@ -74,40 +38,16 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
     
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=10`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
       );
-      const data: Location[] = await response.json();
-      
-      // Sort results by distance if user location is available
-      if (userLocation) {
-        data.forEach(location => {
-          location.distance = calculateDistance(
-            userLocation.lat,
-            userLocation.lon,
-            parseFloat(location.lat),
-            parseFloat(location.lon)
-          );
-        });
-        
-        // Sort by distance and then by importance
-        data.sort((a, b) => {
-          if (!a.distance || !b.distance) return 0;
-          const distanceDiff = a.distance - b.distance;
-          if (Math.abs(distanceDiff) > 10) { // If distance difference is significant
-            return distanceDiff;
-          }
-          // If distances are similar, sort by importance
-          return b.importance - a.importance;
-        });
-      }
-      
-      setSearchResults(data);
+      const data = await response.json();
+      setSearchResults(data.slice(0, 5));
     } catch (error) {
       console.error('Error searching locations:', error);
     }
   };
 
-  const handleLocationSelect = (location: Location) => {
+  const handleLocationSelect = (location: any) => {
     setLatitude(location.lat);
     setLongitude(location.lon);
     setAreaName(location.display_name);
@@ -122,7 +62,6 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
           const { latitude, longitude } = position.coords;
           setLatitude(latitude.toString());
           setLongitude(longitude.toString());
-          setUserLocation({ lat: latitude, lon: longitude });
           
           try {
             const response = await fetch(
@@ -145,16 +84,6 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
       alert('Geolocation is not supported by your browser');
       setIsGettingLocation(false);
     }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(Number(latitude), Number(longitude), areaName, message || '(No message)', category);
-    setLatitude('');
-    setLongitude('');
-    setAreaName('');
-    setMessage('');
-    setCategory('other');
   };
 
   return (
@@ -193,16 +122,7 @@ const AddAlarmForm: React.FC<Props> = ({ onSubmit }) => {
                 onClick={() => handleLocationSelect(result)}
                 className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50"
               >
-                <div className="flex justify-between items-center">
-                  <span>{formatLocationName(result)}</span>
-                  {result.distance && (
-                    <span className="text-sm text-gray-500">
-                      {result.distance < 1 
-                        ? `${(result.distance * 1000).toFixed(0)}m` 
-                        : `${result.distance.toFixed(1)}km`}
-                    </span>
-                  )}
-                </div>
+                {result.display_name}
               </button>
             ))}
           </div>

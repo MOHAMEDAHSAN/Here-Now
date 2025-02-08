@@ -117,30 +117,49 @@ async function fetchWeatherData(lat: number, lon: number, retries = 3): Promise<
 
 async function calculateTravelTime(start: LatLng, end: LatLng): Promise<string> {
   try {
-    // Calculate straight-line distance
+    // Calculate straight-line distance first as a fallback
     const distance = start.distanceTo(end);
+    const averageSpeed = 40; // Average speed in meters per second (roughly 144 km/h)
+    const straightLineDuration = distance / averageSpeed;
     
-    // Convert to kilometers
-    const distanceInKm = distance / 1000;
-    
-    // Estimate time based on average speed (50 km/h for urban areas)
-    const averageSpeedKmH = 50;
-    const estimatedHours = distanceInKm / averageSpeedKmH;
-    
-    // Convert to minutes
-    const totalMinutes = Math.round(estimatedHours * 60);
-    
-    // Format the time
-    if (totalMinutes < 60) {
-      return `~${totalMinutes} min`;
-    } else {
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-      return `~${hours}h ${minutes}m`;
+    try {
+      const response = await fetch(
+        `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=false`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.code === 'Ok' && data.routes && data.routes[0]) {
+        const duration = data.routes[0].duration;
+        const hours = Math.floor(duration / 3600);
+        const minutes = Math.floor((duration % 3600) / 60);
+        
+        if (hours > 0) {
+          return `${hours}h ${minutes}m`;
+        }
+        return `${minutes} min`;
+      }
+      
+      // If OSRM response is invalid, fall back to straight-line calculation
+      throw new Error('Invalid OSRM response');
+      
+    } catch (routingError) {
+      // If OSRM fails, use straight-line distance calculation
+      const hours = Math.floor(straightLineDuration / 3600);
+      const minutes = Math.floor((straightLineDuration % 3600) / 60);
+      
+      if (hours > 0) {
+        return `~${hours}h ${minutes}m`;
+      }
+      return `~${minutes} min`;
     }
   } catch (error) {
     console.error('Error calculating travel time:', error);
-    return 'calculating...';
+    return '~calculating';
   }
 }
 
