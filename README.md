@@ -1,4 +1,4 @@
-# Here&Now
+# Here&Now ~ Never miss a moment, place, or time
 
 ## Overview
 **Here&Now** is a web application designed to help users set **location-based alarms/reminders** to ensure they never miss an important moment, place, or time. The app provides additional features such as **weather reports and location insights**, making it a versatile tool for travelers, commuters, and anyone who wants to stay informed about their surroundings.
