@@ -11,6 +11,13 @@
 - **Interactive Map Interface**: Easily select locations using an embedded map powered by OpenStreetMap.
 - **User-Friendly UI**: A clean and intuitive design for effortless navigation and interaction.
 
+## Preview
+![Screenshot 2025-02-10 150743](https://github.com/user-attachments/assets/a249b26e-355b-425a-a861-f26470c1158d)
+
+<br>
+
+![Screenshot 2025-02-10 150643](https://github.com/user-attachments/assets/0ab10c10-d0df-45af-b95f-d3c30546cfb0)
+
 ## How to Use
 1. **Add a New Alarm**:
    - Enter a location name or select it on the interactive map.
